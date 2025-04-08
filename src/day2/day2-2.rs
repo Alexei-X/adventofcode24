@@ -7,7 +7,7 @@ fn main() {
     let all_reports = split_reports(contents.expect("Should pass the content"));
     let mut result = 0;
     for report in all_reports {
-        if is_safe(report.clone()) {
+        if is_safe(&report, Some(false)) {
             result += 1;
         }
     }
@@ -27,18 +27,24 @@ fn split_reports(contents: String) -> Vec<Vec<i32>> {
     return result;
 }
 
-fn is_safe(report: Vec<i32>) -> bool {
+fn is_safe(report: &Vec<i32>, damping: Option<bool>) -> bool {
     if report.len() < 2 {return true;}
     let growing: bool = (report[1] - report[0]) > 0;
     for i in 1..report.len() {
         let diff = report[i] - report[i-1];
         if (diff > 0) != growing || diff.abs() > 3 || diff.abs() < 1 {
-            return false;
+            if damping.unwrap_or(false) {return false;}
+            return is_dampen(&report);
         }
     }
     return true;
 }
 
-fn is_dampen(report: Vec<i32>) -> bool {
-    
+fn is_dampen(report: &Vec<i32>) -> bool {
+    for i in 0..report.len() {
+        let mut copy = report.clone();
+        copy.remove(i);
+        if is_safe(&copy, Some(true)) {return true}
+    }
+    return false;
 }
